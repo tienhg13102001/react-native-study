@@ -2,25 +2,26 @@ import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import TodoItem from "../components/TodoItem";
-import type { Todo } from "../types";
+import { useTodos } from "../hooks/useTodos";
 
 export default function HomeScreen() {
+  // Tất cả logic dữ liệu gói gọn trong 1 dòng 👇
+  const { todos, addTodo, removeTodo, toggleTodo, editTodo } = useTodos();
+
+  // Chỉ còn lại state thuộc về GIAO DIỆN
   const [textInput, setTextInput] = useState("");
-  const [todos, setTodos] = useState<Array<Todo>>([]);
+  const [filter, setFilter] = useState<"all" | "active" | "done">("all");
 
-  const addTodo = () => {
-    if (!textInput.trim()) return; // Tránh thêm việc rỗng
-    const newTodo: Todo = { id: Date.now().toString(), title: textInput, done: false };
-    setTodos((prev) => [...prev, newTodo]);
+  const visibleTodos = todos.filter((t) => {
+    if (filter === "active") return !t.done;
+    if (filter === "done") return t.done;
+    return true;
+  });
+
+  // Bọc addTodo: lấy chữ từ ô input, thêm, rồi xóa ô
+  const handleAdd = () => {
+    addTodo(textInput);
     setTextInput("");
-  };
-
-  const removeTodo = (id: string) => {
-    setTodos((prev) => prev.filter((t) => t.id !== id));
-  };
-
-  const toggleTodo = (id: string) => {
-    setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
   };
 
   return (
@@ -29,16 +30,25 @@ export default function HomeScreen() {
       <StatusBar style="light" />
       <View style={styles.inputContainer}>
         <TextInput value={textInput} onChangeText={setTextInput} placeholder="Nhập việc..." placeholderTextColor="#6B7280" style={styles.input} />
-        <Pressable style={styles.addButton} onPress={addTodo}>
+        <Pressable style={styles.addButton} onPress={handleAdd}>
           <Text style={styles.addButtonText}>Thêm</Text>
         </Pressable>
       </View>
-
+      {/* ── Thanh lọc ── */}
+      <View style={styles.filterBar}>
+        {(["all", "active", "done"] as const).map((f) => (
+          <Pressable key={f} style={[styles.filterButton, filter === f && styles.filterButtonActive]} onPress={() => setFilter(f)}>
+            <Text style={[styles.filterText, filter === f && styles.filterTextActive]}>
+              {f === "all" ? "Tất cả" : f === "active" ? "Chưa xong" : "Đã xong"}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
       <View style={styles.listContainer}>
         <FlatList
-          data={todos}
+          data={visibleTodos}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <TodoItem item={item} onPressDelete={removeTodo} onPressToggle={toggleTodo} />}
+          renderItem={({ item }) => <TodoItem item={item} onPressDelete={removeTodo} onPressToggle={toggleTodo} onEdit={editTodo} />}
           showsVerticalScrollIndicator={false}
         />
       </View>
@@ -58,6 +68,28 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 12,
     marginBottom: 20,
+  },
+  filterBar: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 16,
+  },
+  filterButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#8B5CF6",
+  },
+  filterButtonActive: {
+    backgroundColor: "#8B5CF6", // nút đang chọn tô nền tím
+  },
+  filterText: {
+    color: "#8B5CF6",
+    fontWeight: "600",
+  },
+  filterTextActive: {
+    color: "#FFFFFF", // chữ trắng khi được chọn
   },
   input: {
     borderWidth: 1.5,

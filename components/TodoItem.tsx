@@ -1,20 +1,48 @@
-import React, { type FC } from "react";
+import React, { useState, type FC } from "react";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { Todo } from "../types";
-import { Text, View, StyleSheet, Pressable } from "react-native";
 
 type Props = {
   item: Todo;
   onPressDelete: (id: string) => void;
   onPressToggle: (id: string) => void;
+  onEdit: (id: string, newTitle: string) => void;
 };
 
-const TodoItem: FC<Props> = ({ item, onPressDelete, onPressToggle }) => {
+const TodoItem: FC<Props> = ({ item, onPressDelete, onPressToggle, onEdit }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState(item.title);
+  const handleSave = () => {
+    onEdit(item.id, draft); // báo lên cha cập nhật
+    setIsEditing(false); // thoát chế độ sửa
+  };
   return (
     <View style={styles.card}>
       <Pressable onPress={() => onPressToggle(item.id)}>
         <View style={[styles.toggleButton, item.done && styles.doneButton]} />
       </Pressable>
-      <Text style={[styles.text, item.done && styles.doneText]}>{item.title}</Text>
+      {isEditing ? (
+        // ── Đang sửa: hiện ô nhập ──
+        <TextInput
+          value={draft}
+          onChangeText={setDraft}
+          onSubmitEditing={handleSave} // bấm Enter để lưu
+          onBlur={handleSave} // bấm ra ngoài cũng lưu
+          autoFocus // tự động bật bàn phím
+          style={styles.editInput}
+        />
+      ) : (
+        // ── Bình thường: bấm vào chữ để bắt đầu sửa ──
+        <Pressable
+          style={styles.textWrapper}
+          onPress={() => {
+            setDraft(item.title); // nạp tiêu đề hiện tại vào ô sửa
+            setIsEditing(true);
+          }}
+        >
+          <Text style={[styles.text, item.done && styles.doneText]}>{item.title}</Text>
+        </Pressable>
+      )}
       <Pressable onPress={() => onPressDelete(item.id)}>
         <Text style={styles.eraseButton}>Xóa</Text>
       </Pressable>
@@ -55,6 +83,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     flex: 1,
+  },
+  textWrapper: {
+    flex: 1, // để vùng bấm chiếm hết khoảng giữa, dễ bấm trúng
+  },
+  editInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#1E1B4B",
+    borderBottomWidth: 1.5,
+    borderBottomColor: "#8B5CF6", // gạch chân tím cho biết đang sửa
+    paddingVertical: 2,
   },
   doneText: {
     textDecorationLine: "line-through", // ⭐ RN-specific: gạch ngang chữ
