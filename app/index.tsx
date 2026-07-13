@@ -2,11 +2,12 @@ import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import TodoItem from "../components/TodoItem";
-import { useTodos } from "../hooks/useTodos";
+import { useTodosContext } from "../context/TodoContext";
+
 
 export default function HomeScreen() {
   // Tất cả logic dữ liệu gói gọn trong 1 dòng 👇
-  const { todos, addTodo, removeTodo, toggleTodo, editTodo } = useTodos();
+  const { todos, addTodo, removeTodo, toggleTodo, editTodo } = useTodosContext();
 
   // Chỉ còn lại state thuộc về GIAO DIỆN
   const [textInput, setTextInput] = useState("");

@@ -1,6 +1,7 @@
 import React, { useState, type FC } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { Todo } from "../types";
+import { useRouter } from "expo-router";
 
 type Props = {
   item: Todo;
@@ -10,11 +11,19 @@ type Props = {
 };
 
 const TodoItem: FC<Props> = ({ item, onPressDelete, onPressToggle, onEdit }) => {
+  const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(item.title);
+
   const handleSave = () => {
     onEdit(item.id, draft); // báo lên cha cập nhật
     setIsEditing(false); // thoát chế độ sửa
+  };
+
+  const goToDetail = () => {
+    router.push({
+      pathname: `/${item.id}`,
+    });
   };
   return (
     <View style={styles.card}>
@@ -43,6 +52,9 @@ const TodoItem: FC<Props> = ({ item, onPressDelete, onPressToggle, onEdit }) => 
           <Text style={[styles.text, item.done && styles.doneText]}>{item.title}</Text>
         </Pressable>
       )}
+      <Pressable onPress={goToDetail}>
+        <Text style={styles.detailButton}>Chi tiết</Text>
+      </Pressable>
       <Pressable onPress={() => onPressDelete(item.id)}>
         <Text style={styles.eraseButton}>Xóa</Text>
       </Pressable>
@@ -98,6 +110,11 @@ const styles = StyleSheet.create({
   doneText: {
     textDecorationLine: "line-through", // ⭐ RN-specific: gạch ngang chữ
     color: "#9CA3AF",
+  },
+  detailButton: {
+    color: "#8B5CF6",
+    fontWeight: "600",
+    marginRight: 4,
   },
   eraseButton: {
     color: "red",
