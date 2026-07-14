@@ -1,21 +1,14 @@
 import { Stack } from "expo-router";
-import { TodosProvider } from "../context/TodoContext";
+import { TransactionsProvider } from "../context/TransactionsContext";
 
 export default function RootLayout() {
   return (
-    <TodosProvider>
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: "#F97316" }, // header màu cam
-          headerTintColor: "#fff", // chữ + nút back màu trắng
-          headerTitleStyle: { fontWeight: "bold" },
-        }}
-      >
-        {/* Mỗi <Stack.Screen> tương ứng 1 file trong app/.
-          name="index" = app/index.tsx = route "/" */}
-        <Stack.Screen name="index" options={{ title: "Việc cần làm" }} />
-        <Stack.Screen name="[id]" options={{ title: "Chi tiết việc" }} />
+    // Bọc toàn app: cả 3 tab dùng chung 1 nguồn dữ liệu giao dịch
+    <TransactionsProvider>
+      {/* Ẩn header của Stack vì thanh Tabs đã có header riêng */}
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
       </Stack>
-    </TodosProvider>
+    </TransactionsProvider>
   );
 }
